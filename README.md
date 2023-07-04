@@ -8,9 +8,7 @@ pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 
 # install df_engine
-pip install df_engine
-# install dashboard for stats
-pip install dff-node-stats[dashboard] 
+pip install dff 
 ```
 ### Environment
 
@@ -70,9 +68,7 @@ We use [Dialog Flow Engine](https://www.github.com/deepmipt/dialog_flow_engine) 
 Follow these instructions to install Dialog Flow Engine:
 ```bash
 # install df_engine
-pip install df_engine
-# install dashboard for stats
-pip install dff-node-stats[dashboard] 
+pip install dff
 ```
 
 Follow these requirements to prepare DD-IDDE SDK to run on your machine:

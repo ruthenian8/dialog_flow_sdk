@@ -1,37 +1,35 @@
-import logging
-from df_engine.core.keywords import TRANSITIONS, RESPONSE
-from df_engine.core import Actor
-import df_engine.conditions as cnd
+from dff.script import TRANSITIONS, RESPONSE, Message
+from dff.pipeline import Pipeline
+import dff.script.conditions as cnd
 
 from utils import condition as loc_cnd
-from utils import common
+from .utils.common import pre_services
+from dff.utils.testing import run_interactive_mode
 
-logger = logging.getLogger(__name__)
 
-
-plot = {
+script = {
     "greeting_flow": {
         "start_node": {
-            RESPONSE: "",
+            RESPONSE: Message(text=""),
             TRANSITIONS: {"node1": loc_cnd.is_intent("topic_switching")},
         },
         "node1": {
-            RESPONSE: "What do you want to talk about?",
+            RESPONSE: Message(text="What do you want to talk about?"),
             TRANSITIONS: {"node2": loc_cnd.is_intent("lets_chat_about")},
         },
         "node2": {
-            RESPONSE: "Ok, what do you want to know?",
+            RESPONSE: Message(text="Ok, what do you want to know?"),
             TRANSITIONS: {"node1": cnd.true()},
         },
     },
 }
 
-actor = Actor(plot, start_label=("greeting_flow", "start_node"))
+pipeline = Pipeline.from_script(
+    script=script,
+    start_label=("greeting_flow", "start_node"),
+    pre_services=pre_services
+)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        format="%(asctime)s-%(name)15s:%(lineno)3s:%(funcName)20s():%(levelname)s - %(message)s",
-        level=logging.INFO,
-    )
-    common.run_interactive_mode(actor)
+    run_interactive_mode(pipeline)

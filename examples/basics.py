@@ -1,16 +1,17 @@
 import logging
-from df_engine.core.keywords import TRANSITIONS, RESPONSE, MISC
-from df_engine.core import Actor
-import df_engine.conditions as cnd
+from dff.script import TRANSITIONS, RESPONSE, MISC
+from dff.pipeline import Pipeline
+import dff.script.conditions as cnd
 
-from utils import condition as loc_cnd
-from utils import common
+from .utils import condition as loc_cnd
+from .utils.common import pre_services
+from dff.utils.testing import run_interactive_mode
 
 logger = logging.getLogger(__name__)
 
-# Below, `plot` is the dialog script.
+# Below, `script` is the dialog script.
 # A dialog script is a flow dictionary that can contain multiple flows .
-# Plot are needed in order to divide a dialog into sub-dialogs and process them separately.
+# script are needed in order to divide a dialog into sub-dialogs and process them separately.
 # For example, the separation can be tied to the topic of the dialog.
 # In our example, there is one flow called greeting_flow.
 
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 # `TRANSITIONS` are described in pairs:
 #      - the node to which the agent will perform the transition
 #      - the condition under which to make the transition
-plot = {
+script = {
     "greeting_flow": {
         "start_node": {  # This is an initial node, it doesn't need an `RESPONSE`
             RESPONSE: "",
@@ -60,21 +61,17 @@ plot = {
     },
 }
 
-# An actor is an object that processes user input replicas and returns responses
-# To create the actor, you need to pass the script of the dialogue `plot`
+# A pipeline is an object that processes user input replicas and returns responses
+# To create the pipeline, you need to pass the script of the dialogue `script`
 # And pass the initial node `start_label`
-# and the node to which the actor will go in case of an error `fallback_label`
+# and the node to which the pipeline will go in case of an error `fallback_label`
 # If `fallback_label` is not set, then its value becomes equal to `start_label` by default
-actor = Actor(
-    plot,
+pipeline = Pipeline(
+    script=script,
     start_label=("greeting_flow", "start_node"),
     fallback_label=("greeting_flow", "fallback_node"),
+    pre_services=pre_services
 )
 
-
 if __name__ == "__main__":
-    logging.basicConfig(
-        format="%(asctime)s-%(name)15s:%(lineno)3s:%(funcName)20s():%(levelname)s - %(message)s",
-        level=logging.INFO,
-    )
-    common.run_interactive_mode(actor)
+    run_interactive_mode(pipeline)

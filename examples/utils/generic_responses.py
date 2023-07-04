@@ -5,11 +5,11 @@ import re
 import spacy
 import nltk
 from nltk import word_tokenize
-import df_engine.labels as lbl
-from df_engine.core.keywords import TRANSITIONS, RESPONSE
-from df_engine.core import Context, Actor
+import dff.script.labels as lbl
+from dff.script import TRANSITIONS, RESPONSE, Context
+from dff.pipeline import Pipeline
 
-from utils import sf_utils
+from . import sf_utils
 
 
 RANDOM_RESPONSE = False
@@ -50,6 +50,7 @@ HIGH_CONFIDENCE = 0.98
 MUST_CONTINUE_CONFIDENCE = 0.98
 CAN_CONTINUE_CONFIDENCE = 0.9
 CANNOT_CONTINUE_CONFIDENCE = 0.0
+# endregion
 
 
 patterns_supported_speech_functions = ["Register", "Check", "Confirm", "Monitor", "Affirm", "Agree", "Clarify"]
@@ -197,7 +198,7 @@ def generate_response(ctx, predicted_sf, previous_phrase, enable_repeats_registe
 ##################################################################################################################
 
 
-def generic_response_condition(ctx: Context, actor: Actor, *args, **kwargs):
+def generic_response_condition(ctx: Context, _: Pipeline):
     flag = False
     human_utterance = ctx.last_request
     bot_utterance = ctx.last_response
@@ -212,7 +213,7 @@ def generic_response_condition(ctx: Context, actor: Actor, *args, **kwargs):
     return flag
 
 
-def generic_response_generate(ctx: Context, actor: Actor, *args, **kwargs):
+def generic_response_generate(ctx: Context, _: Pipeline):
     logger.debug("exec usr_response_to_speech_function_response")
     interrogative_words = ["whose", "what", "which", "who", "whom", "what", "which", "why", "where", "when", "how"]
 
@@ -290,3 +291,4 @@ generic_responses_flow = {
         TRANSITIONS: {lbl.repeat(): generic_response_condition},
     },
 }
+# endregion

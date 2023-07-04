@@ -1,42 +1,37 @@
-import logging
-
-from df_engine.core.keywords import TRANSITIONS, RESPONSE
-from df_engine.core import Actor
-import df_engine.conditions as cnd
-import df_engine.labels as lbl
+from dff.script import TRANSITIONS, RESPONSE, Message
+from dff.pipeline import Pipeline
+import dff.script.conditions as cnd
+import dff.script.labels as lbl
 
 from utils import condition as loc_cnd
-from utils import common
+from .utils.common import pre_services
+from dff.utils.testing import run_interactive_mode
 from utils.generic_responses import generic_response_condition, generic_response_generate
 
-
-logger = logging.getLogger(__name__)
-
-
-plot_extended = {
+script = {
     "greeting_flow": {
         "start_node": {  # This is an initial node, it doesn't need an `RESPONSE`
-            RESPONSE: "",
+            RESPONSE: Message(text=""),
             TRANSITIONS: {"node1": cnd.all([loc_cnd.is_sf("Open.Give.Opinion"), loc_cnd.is_midas("pos_answer")])},
         },
         "node1": {
-            RESPONSE: "Hi, how are you?",  # When the agent goes to node1, we return "Hi, how are you?"
+            RESPONSE: Message(text="Hi, how are you?"),  # When the agent goes to node1, we return "Hi, how are you?"
             TRANSITIONS: {"node2": cnd.exact_match("i'm fine, how are you?"),
                           ("generic_responses_flow", "generic_response"): generic_response_condition,
             },
         },
         "node2": {
-            RESPONSE: "Good. I'm glad that you are having a good time.",
+            RESPONSE: Message(text="Good. I'm glad that you are having a good time."),
             TRANSITIONS: {"node1": cnd.exact_match("Hi")},
         },
         "fallback_node": {  # We get to this node if an error occurred while the agent was running
-            RESPONSE: "Ooops",
+            RESPONSE: Message(text="Ooops"),
             TRANSITIONS: {"node1": cnd.exact_match("Hi")},
         }
     },
     "generic_responses_flow": {
         "start_node": {
-            RESPONSE: "",
+            RESPONSE: Message(text=""),
             TRANSITIONS: {"generic_response": generic_response_condition},
         },
         "generic_response": {
@@ -46,18 +41,14 @@ plot_extended = {
     }
 }
 
-actor = Actor(
-    plot_extended,
+pipeline = Pipeline.from_script(
+    script=script,
     start_label=("greeting_flow", "start_node"),
     fallback_label=("greeting_flow", "fallback_node"),
+    pre_services=pre_services
 )
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        format="%(asctime)s-%(name)15s:%(lineno)3s:%(funcName)20s():%(levelname)s - %(message)s",
-        level=logging.INFO,
-    )
-    common.run_interactive_mode(actor)
-
+    run_interactive_mode(pipeline=pipeline)
 # %%

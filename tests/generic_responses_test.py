@@ -1,11 +1,8 @@
-import logging
-
-from examples.utils import common
-
+from dff.utils.testing import check_happy_path
 from examples import generic_responses as test
 
 # testing
-testing_dialog = [
+HAPPY_PATH = [
     ("Hi", "Hi, how are you?"),  # start_node -> node1
     ("I'm fine, square root of two times square root of three is square root of six is it?", "Yes"),  # node1 -> generic_response
     ("Ok", "Ooops"),  # generic_response -> fallback_node
@@ -13,8 +10,4 @@ testing_dialog = [
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        format="%(asctime)s-%(name)15s:%(lineno)3s:%(funcName)20s():%(levelname)s - %(message)s",
-        level=logging.INFO,
-    )
-    common.run_test(test.actor, testing_dialog)
+    check_happy_path(test.pipeline, HAPPY_PATH)

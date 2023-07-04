@@ -1,7 +1,7 @@
 import logging
 import os
 
-from df_engine.core import Context
+from dff.script import Context
 import requests
 from nltk.tokenize import sent_tokenize
 
@@ -18,8 +18,8 @@ INTENT_CATCHER_URL = os.getenv("INTENT_CATCHER_URL", "http://0.0.0.0:8014/detect
 
 def get_sf(ctx: Context):
     try:
-        last_response = ctx.last_response
-        last_request = ctx.last_request
+        last_response = ctx.last_response.text
+        last_request = ctx.last_request.text
         prev_speech_function = ctx.misc.get("speech_functions", [[None]])[-1][-1]
         requested_data = {
             "phrase": sent_tokenize(last_request),
@@ -51,9 +51,10 @@ def get_sfp(ctx: Context):
 
 def get_midas(ctx: Context):
     try:
-        last_response = ctx.last_response if ctx.last_response else "hi"
+        last_request = ctx.last_request.text
+        last_response = ctx.last_response.text if ctx.last_response else "hi"
         requested_data = {
-            "dialogs": [{"human_utterances": [{"text": ctx.last_request}], "bot_utterances": [{"text": last_response}]}]
+            "dialogs": [{"human_utterances": [{"text": last_request}], "bot_utterances": [{"text": last_response}]}]
         }
         midas = requests.post(MIDAS_URL, json=requested_data).json()[0]
         logger.info(f"current midas {midas}")
@@ -65,7 +66,7 @@ def get_midas(ctx: Context):
 
 def get_entities(ctx: Context):
     try:
-        last_request = ctx.last_request if ctx.last_request else ""
+        last_request = ctx.last_request.text if ctx.last_request else ""
         bot_utterances = list(ctx.responses.values())
         requested_data = {"last_utterances": [[last_request]]}
         if len(bot_utterances) > 0:
@@ -80,7 +81,7 @@ def get_entities(ctx: Context):
 
 def get_entity_ids(ctx: Context):
     try:
-        last_request = ctx.last_request if ctx.last_request else ""
+        last_request = ctx.last_request.text if ctx.last_request else ""
         entities = ctx.misc.get("entity_detection", [{}])[-1].get("entities", [])
         requested_data = {"entity_substr": [entities], "template": [""], "context": [[last_request]]}
         el_output = requests.post(ENTITY_LINKING_URL, json=requested_data).json()
@@ -141,7 +142,7 @@ intent2ext_sf = {
 
 def get_intent_and_ext_sf(ctx: Context):
     try:
-        requested_data = {"sentences": [sent_tokenize(ctx.last_request)]}
+        requested_data = {"sentences": [sent_tokenize(ctx.last_request.text)]}
         intents = requests.post(INTENT_CATCHER_URL, json=requested_data).json()
         intents = intents[0] if intents else {}
         intents = [intent for intent, val in intents.items() if val.get("detected", 0) == 1]

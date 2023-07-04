@@ -1,41 +1,36 @@
 import logging
 
-from df_engine.core.keywords import TRANSITIONS, RESPONSE, MISC, PROCESSING
-from df_engine.core import Actor
-import df_engine.conditions as cnd
+from dff.script import TRANSITIONS, RESPONSE, MISC, Message
+from dff.pipeline import Pipeline
 
-from utils import condition as dm_cnd
-from utils import common
-from utils.entity_detection import has_entities, entity_extraction, slot_filling
+from .utils.common import pre_services
+from dff.utils.testing import run_interactive_mode
 
 
 logger = logging.getLogger(__name__)
 
-plot = {
+script = {
     "food_flow": {
         "start_node": {
             TRANSITIONS: {},
-            RESPONSE: "",
+            RESPONSE: Message(text=""),
             MISC: {"speech_functions": ["Open.Attend"]},
         },
         "fallback_node": {
             TRANSITIONS: {},
-            RESPONSE: "Ooops",
+            RESPONSE: Message(text="Ooops"),
             MISC: {"speech_functions": ["fallback_node"]}
         },
     },
 }
 
-actor = Actor(
-    plot,
+pipeline = Pipeline.from_script(
+    script=script,
     start_label=("food_flow", "start_node"),
     fallback_label=("food_flow", "fallback_node"),
+    pre_services=pre_services
 )
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        format="%(asctime)s-%(name)15s:%(lineno)3s:%(funcName)20s():%(levelname)s - %(message)s",
-        level=logging.INFO,
-    )
-    common.run_interactive_mode(actor)
+    run_interactive_mode(pipeline)

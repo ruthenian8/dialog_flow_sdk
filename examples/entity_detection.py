@@ -1,69 +1,75 @@
-import logging
-
-from df_engine.core.keywords import TRANSITIONS, RESPONSE, PROCESSING
-from df_engine.core import Actor
-import df_engine.conditions as cnd
-import df_engine.labels as lbl
-
+from dff.pipeline.pipeline.pipeline import Pipeline
+from dff.script import TRANSITIONS, RESPONSE, PRE_TRANSITIONS_PROCESSING, Context, Message
+import dff.script.conditions as cnd
 from utils import condition as dm_cnd
-from utils import common
-from utils.entity_detection import has_entities, entity_extraction, slot_filling
+from dff.script import slots
+from dff.script.slots import conditions as slot_cnd
+from dff.script.slots import response as slot_rsp
+from dff.script.slots import processing as slot_proc
+
+from dff.pipeline import Pipeline
+
+from .utils.common import pre_services
+from dff.utils.testing import run_interactive_mode
+from utils.entity_detection import get_entity_by_tag, get_entity_by_type
 
 
-logger = logging.getLogger(__name__)
+class ContextAwareSlot(slots.FunctionSlot):
+    def extract_value(self, ctx: Context, pipeline: Pipeline):
+        self.value = str(self.func(ctx, pipeline))
+        return self.value
 
 
-plot_extended = {
+person_slot = ContextAwareSlot(name="tags:person", func=get_entity_by_tag("person"))
+videoname_slot = ContextAwareSlot(name="tags:videoname", func=get_entity_by_tag("videoname"))
+wiki_slot = ContextAwareSlot(name="wiki:Q177220", func=get_entity_by_type("Q177220"))
+
+script = {
     "greeting_flow": {
         "start_node": {  # This is an initial node, it doesn't need an `RESPONSE`
-            RESPONSE: "",
+            RESPONSE: Message(text=""),
             TRANSITIONS: {"node1": cnd.all([dm_cnd.is_midas("pos_answer")])},
         },
         "node1": {
-            RESPONSE: "Hi, how are you?",  # When the agent goes to node1, we return "Hi, how are you?"
+            RESPONSE: Message(text="Hi, how are you?"),  # When the agent goes to node1, we return "Hi, how are you?"
             TRANSITIONS: {"node2": cnd.exact_match("i'm fine, how are you?")},
         },
         "node2": {
-            RESPONSE: "Good. What do you want to talk about?",
+            RESPONSE: Message(text="Good. What do you want to talk about?"),
             TRANSITIONS: {
                 "node3": cnd.exact_match("Let's talk about music.")
             },
         },
         "node3": {
-            RESPONSE: "What is your favourite singer?",
-            TRANSITIONS: {"node4": has_entities(["tags:person", "tags:videoname", "wiki:Q177220"])},
+            RESPONSE: Message(text="What is your favourite singer?"),
+            PRE_TRANSITIONS_PROCESSING: {
+                "extract_slots": slot_proc.extract(["tags:person", "tags:videoname", "wiki:Q177220"])
+            },
+            TRANSITIONS: {"node4": slot_cnd.is_set_any(["tags:person", "tags:videoname", "wiki:Q177220"])},
         },
         "node4": {
-            PROCESSING: {
-                1: entity_extraction(singer=["tags:person", "tags:videoname", "wiki:Q177220"]),
-                2: slot_filling,
-            },
-            RESPONSE: "I also like [singer] songs.",
+            RESPONSE: slot_rsp.fill_template(
+                Message(text="I also like {singer} songs.")
+            ),
             TRANSITIONS: {"node5": cnd.exact_match("Ok, goodbye.")},
         },
         "node5": {
-            RESPONSE: "bye",
+            RESPONSE: Message(text="bye"),
             TRANSITIONS: {"node1": cnd.exact_match("Hi")},
         },
         "fallback_node": {  # We get to this node if an error occurred while the agent was running
-            RESPONSE: "Ooops",
+            RESPONSE: Message(text="Ooops"),
             TRANSITIONS: {"node1": cnd.exact_match("Hi")},
         },
     }
 }
 
-actor = Actor(
-    plot_extended,
+pipeline = Pipeline.from_script(
+    script=script,
     start_label=("greeting_flow", "start_node"),
     fallback_label=("greeting_flow", "fallback_node"),
+    pre_services=pre_services
 )
 
-
 if __name__ == "__main__":
-    logging.basicConfig(
-        format="%(asctime)s-%(name)15s:%(lineno)3s:%(funcName)20s():%(levelname)s - %(message)s",
-        level=logging.INFO,
-    )
-    common.run_interactive_mode(actor)
-
-# %%
+    run_interactive_mode(pipeline=pipeline)

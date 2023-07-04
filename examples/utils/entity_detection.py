@@ -2,7 +2,9 @@ import logging
 import re
 from typing import Optional, Tuple
 
-from df_engine.core import Context, Actor, Node
+from dff.script.core.script import Node
+from dff.script import Context, Message
+from dff.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +47,7 @@ def find_entity_by_types(wp_output, types_to_find, relations=None):
 
 
 def extract_entity(ctx, entity_type):
-    user_text = ctx.last_request
+    user_text = ctx.last_request.text
     entities = ctx.misc.get("entity_detection", [{}])[-1]
     wp_output = ctx.misc.get("wiki_parser", [{}])[-1]
     if entity_type.startswith("tags"):
@@ -72,8 +74,34 @@ def extract_entity(ctx, entity_type):
     return ""
 
 
+def get_entity_by_type(_type: str):
+    def get_entity(ctx: Context, _: Pipeline):
+        wp_output = ctx.misc.get("wiki_parser", [{}])[-1]
+        found_entity, *_ = find_entity_by_types(wp_output, [_type])
+        if found_entity:
+            return found_entity
+        return None
+
+    return get_entity
+
+
+def get_entity_by_tag(tag: str):
+    def get_entity(ctx: Context, _: Pipeline):
+        entities = ctx.misc.get("entity_detection", [{}])[-1]
+        nounphrases = entities.get("labelled_entities", [])
+        for nounphr in nounphrases:
+            nounphr_text = nounphr.get("text", "")
+            nounphr_label = nounphr.get("label", "")
+            if nounphr_label == tag:
+                found_entity = nounphr_text
+                return found_entity
+        return None
+
+    return get_entity
+
+
 def has_entities(entity_types):
-    def has_entities_func(ctx: Context, actor: Actor, *args, **kwargs):
+    def has_entities_func(ctx: Context, _: Pipeline):
         flag = False
         if isinstance(entity_types, str):
             extracted_entity = extract_entity(ctx, entity_types)
@@ -93,10 +121,8 @@ def has_entities(entity_types):
 def entity_extraction(**ent_kwargs):
     def entity_extraction_func(
         ctx: Context,
-        actor: Actor,
-        *args,
-        **kwargs,
-    ) -> Optional[Tuple[str, Node]]:
+        _: Pipeline
+    ) -> Context:
         shared_memory = ctx.misc.get("shared_memory", {})
         slot_values = shared_memory.get("slot_values", {})
         for slot_name, slot_types in ent_kwargs.items():
@@ -120,11 +146,9 @@ def entity_extraction(**ent_kwargs):
 
 def slot_filling(
     ctx: Context,
-    actor: Actor,
-    *args,
-    **kwargs,
-) -> Optional[Tuple[str, Node]]:
-    processed_node = ctx.a_s.get("processed_node", ctx.a_s["next_node"])
+    _: Pipeline
+) -> Context:
+    processed_node = ctx.framework_states['actor'].get("processed_node", ctx.framework_states['actor']["next_node"])
     prev_response = processed_node.response
     slot_name = re.findall(r"\[(.*?)\]", prev_response)
     shared_memory = ctx.misc.get("shared_memory", {})
@@ -132,9 +156,9 @@ def slot_filling(
     if slot_name:
         slot_value = slot_values.get(slot_name[0], "")
         replace_str = "[" + slot_name[0] + "]"
-        response = prev_response.replace(replace_str, slot_value)
+        response = Message(text=prev_response.text.replace(replace_str, slot_value))
     else:
         response = prev_response
     processed_node.response = response
-    ctx.a_s["processed_node"] = processed_node
+    ctx.framework_states["actor"]["processed_node"] = processed_node
     return ctx
