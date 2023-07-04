@@ -32,12 +32,12 @@ script = {
         },
         "node1": {
             RESPONSE: Message(text="Hi, how are you?"),  # When the agent goes to node1, we return "Hi, how are you?"
-            TRANSITIONS: {"node2": cnd.exact_match("i'm fine, how are you?")},
+            TRANSITIONS: {"node2": cnd.exact_match(Message(text="i'm fine, how are you?"))},
         },
         "node2": {
             RESPONSE: Message(text="Good. What do you want to talk about?"),
             TRANSITIONS: {
-                "node3": cnd.exact_match("Let's talk about music.")
+                "node3": cnd.exact_match(Message(text="Let's talk about music."))
             },
         },
         "node3": {
@@ -51,15 +51,15 @@ script = {
             RESPONSE: slot_rsp.fill_template(
                 Message(text="I also like {singer} songs.")
             ),
-            TRANSITIONS: {"node5": cnd.exact_match("Ok, goodbye.")},
+            TRANSITIONS: {"node5": cnd.exact_match(Message(text="Ok, goodbye."))},
         },
         "node5": {
             RESPONSE: Message(text="bye"),
-            TRANSITIONS: {"node1": cnd.exact_match("Hi")},
+            TRANSITIONS: {"node1": cnd.exact_match(Message(text="Hi"))},
         },
         "fallback_node": {  # We get to this node if an error occurred while the agent was running
             RESPONSE: Message(text="Ooops"),
-            TRANSITIONS: {"node1": cnd.exact_match("Hi")},
+            TRANSITIONS: {"node1": cnd.exact_match(Message(text="Hi"))},
         },
     }
 }

@@ -7,5 +7,8 @@ click==7.1.2
 requests==2.25.1 
 scipy==1.6.3
 pandas==1.2.4
+spacy==3.0.0
 scikit-learn==0.22.2.post1
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.0.0/en_core_web_sm-3.0.0.tar.gz
+jinja2<=3.0.3
+Werkzeug<=2.0.3

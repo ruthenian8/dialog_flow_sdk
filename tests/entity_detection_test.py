@@ -1,13 +1,14 @@
+from dff.script import Message
 from dff.utils.testing import check_happy_path
 from examples import entity_detection as test
 
 # testing
 HAPPY_PATH = [
-    ("Hi", "Hi, how are you?"),  # start_node -> node1
-    ("i'm fine, how are you?", "Good. What do you want to talk about?"),  # node1 -> node2
-    ("Let's talk about music.", "What is your favourite singer?"),  # node2 -> node3
-    ("Kurt Cobain.", "I also like kurt cobain songs."),  # node3 -> node4
-    ("Ok, goodbye.", "bye"),  # node4 -> node5
+    (Message(text="Hi"), Message(text="Hi, how are you?")),  # start_node -> node1
+    (Message(text="i'm fine, how are you?"), Message(text="Good. What do you want to talk about?")),  # node1 -> node2
+    (Message(text="Let's talk about music."), Message(text="What is your favourite singer?")),  # node2 -> node3
+    (Message(text="Kurt Cobain."), Message(text="I also like kurt cobain songs.")),  # node3 -> node4
+    (Message(text="Ok, goodbye."), Message(text="bye")),  # node4 -> node5
 ]
 
 

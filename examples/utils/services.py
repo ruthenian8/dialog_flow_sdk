@@ -18,8 +18,8 @@ INTENT_CATCHER_URL = os.getenv("INTENT_CATCHER_URL", "http://0.0.0.0:8014/detect
 
 def get_sf(ctx: Context):
     try:
-        last_response = ctx.last_response.text
-        last_request = ctx.last_request.text
+        last_response = ctx.last_response.text if ctx.last_response else ""
+        last_request = ctx.last_request.text if ctx.last_request else ""
         prev_speech_function = ctx.misc.get("speech_functions", [[None]])[-1][-1]
         requested_data = {
             "phrase": sent_tokenize(last_request),
@@ -51,7 +51,7 @@ def get_sfp(ctx: Context):
 
 def get_midas(ctx: Context):
     try:
-        last_request = ctx.last_request.text
+        last_request = ctx.last_request.text if ctx.last_request else ""
         last_response = ctx.last_response.text if ctx.last_response else "hi"
         requested_data = {
             "dialogs": [{"human_utterances": [{"text": last_request}], "bot_utterances": [{"text": last_response}]}]
