@@ -49,7 +49,7 @@ script = {
         },
         "node4": {
             RESPONSE: slot_rsp.fill_template(
-                Message(text="I also like {singer} songs.")
+                Message(text="I also like {tags:person} songs.")
             ),
             TRANSITIONS: {"node5": cnd.exact_match(Message(text="Ok, goodbye."))},
         },

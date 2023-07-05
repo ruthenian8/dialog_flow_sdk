@@ -70,7 +70,7 @@ def get_entities(ctx: Context):
         bot_utterances = list(ctx.responses.values())
         requested_data = {"last_utterances": [[last_request]]}
         if len(bot_utterances) > 0:
-            requested_data["prev_utterances"] = [[bot_utterances[-1]]]
+            requested_data["prev_utterances"] = [[bot_utterances[-1].text]]
         entities = requests.post(ENTITY_DETECTION_URL, json=requested_data).json()
         logger.info(f"current entity detection {entities}")
         ctx.misc["entity_detection"] = ctx.misc.get("entity_detection", []) + entities
