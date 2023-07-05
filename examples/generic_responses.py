@@ -16,17 +16,17 @@ script = {
         },
         "node1": {
             RESPONSE: Message(text="Hi, how are you?"),  # When the agent goes to node1, we return "Hi, how are you?"
-            TRANSITIONS: {"node2": cnd.exact_match("i'm fine, how are you?"),
+            TRANSITIONS: {"node2": cnd.exact_match(Message(text="i'm fine, how are you?")),
                           ("generic_responses_flow", "generic_response"): generic_response_condition,
             },
         },
         "node2": {
             RESPONSE: Message(text="Good. I'm glad that you are having a good time."),
-            TRANSITIONS: {"node1": cnd.exact_match("Hi")},
+            TRANSITIONS: {"node1": cnd.exact_match(Message(text="Hi"))},
         },
         "fallback_node": {  # We get to this node if an error occurred while the agent was running
             RESPONSE: Message(text="Ooops"),
-            TRANSITIONS: {"node1": cnd.exact_match("Hi")},
+            TRANSITIONS: {"node1": cnd.exact_match(Message(text="Hi"))},
         }
     },
     "generic_responses_flow": {

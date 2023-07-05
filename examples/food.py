@@ -195,7 +195,7 @@ script = {
             },
             RESPONSE: Message(text="Oh, [cuisine]! I just adore it!"),
             TRANSITIONS: {
-                "really_likes_cuisine": cnd.exact_match("yeah"),
+                "really_likes_cuisine": cnd.exact_match(Message(text="yeah")),
                 "doesnt_want_to_cook": dm_cnd.is_sf("React"),
             },
             MISC: {"speech_functions": ["React.Respond.Support.Register", "Sustain.Continue.Prolong.Elaborate"]},
