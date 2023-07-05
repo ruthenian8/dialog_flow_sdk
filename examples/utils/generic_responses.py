@@ -82,7 +82,7 @@ def is_supported_speech_function(ctx, human_utterance, bot_utterance):
 def get_pre_last_human_utterance(ctx):
     utterances = list(ctx.requests.values())
     if len(utterances) > 1:
-        return utterances[-2]
+        return utterances[-2].text
     else:
         return ""
 
@@ -90,7 +90,7 @@ def get_pre_last_human_utterance(ctx):
 def get_pre_last_bot_utterance(ctx):
     utterances = list(ctx.responses.values())
     if len(utterances) > 1:
-        return utterances[-2]
+        return utterances[-2].text
     else:
         return ""
 
