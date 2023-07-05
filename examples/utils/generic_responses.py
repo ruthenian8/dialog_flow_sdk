@@ -6,7 +6,7 @@ import spacy
 import nltk
 from nltk import word_tokenize
 import dff.script.labels as lbl
-from dff.script import TRANSITIONS, RESPONSE, Context
+from dff.script import TRANSITIONS, RESPONSE, Context, Message
 from dff.pipeline import Pipeline
 
 from . import sf_utils
@@ -200,8 +200,8 @@ def generate_response(ctx, predicted_sf, previous_phrase, enable_repeats_registe
 
 def generic_response_condition(ctx: Context, _: Pipeline):
     flag = False
-    human_utterance = ctx.last_request
-    bot_utterance = ctx.last_response
+    human_utterance = ctx.last_request.text if ctx.last_request else ""
+    bot_utterance = ctx.last_response.text if ctx.last_response else ""
     try:
         flag = is_supported_speech_function(ctx, human_utterance, bot_utterance)
 
@@ -218,7 +218,7 @@ def generic_response_generate(ctx: Context, _: Pipeline):
     interrogative_words = ["whose", "what", "which", "who", "whom", "what", "which", "why", "where", "when", "how"]
 
     try:
-        human_utterance = ctx.last_request
+        human_utterance = ctx.last_request.text
         phrases = nltk.sent_tokenize(human_utterance)
 
         sf_functions = None
@@ -241,7 +241,7 @@ def generic_response_generate(ctx: Context, _: Pipeline):
 
         if not sf_functions:
             logger.info("generic_response_generate, not sf_functions")
-            return ""
+            return Message(text="")
 
         last_phrase_function = list(sf_functions)[-1]
 
@@ -250,7 +250,7 @@ def generic_response_generate(ctx: Context, _: Pipeline):
 
         if not sf_predictions:
             logger.info("generic_response_generate, not sf_predictions")
-            return ""
+            return Message(text="")
 
         generic_responses = []
 
@@ -273,12 +273,12 @@ def generic_response_generate(ctx: Context, _: Pipeline):
             response = random.choice(generic_responses)
         logger.info(f"generic_response_generate {response}")
 
-        return response
+        return Message(text=response)
 
     except Exception as exc:
         logger.exception(exc)
         logger.info(f"generic_response_generate: Exception: {exc}")
-        return ""
+        return Message(text="")
 
 
 generic_responses_flow = {

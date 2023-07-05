@@ -39,7 +39,7 @@ script = {
             RESPONSE: Message(text="Hi, how are you?"),  # When the agent goes to node1, we return "Hi, how are you?"
             TRANSITIONS: {"node2": cnd.exact_match(Message(text="i'm fine, how are you?"))},
         },
-        "new_node": {
+        "node2": {
             RESPONSE: Message(text="Good. What do you want to talk about?"),
             TRANSITIONS: {"node3": cnd.exact_match(Message(text="Let's talk about music."))},
             MISC: {"speech_functions": ["Open.Attend"]},
@@ -54,7 +54,7 @@ script = {
             MISC: {"speech_functions": ["Open.Attend"]},
         },
         "fallback_node": {  # We get to this node if an error occurred while the agent was running
-            RESPONSE: "Ooops",
+            RESPONSE: Message(text="Ooops"),
             TRANSITIONS: {"node1": cnd.exact_match(Message(text="Hi"))},
             MISC: {"speech_functions": ["fallback_node"]},
         },
@@ -66,7 +66,7 @@ script = {
 # And pass the initial node `start_label`
 # and the node to which the pipeline will go in case of an error `fallback_label`
 # If `fallback_label` is not set, then its value becomes equal to `start_label` by default
-pipeline = Pipeline(
+pipeline = Pipeline.from_script(
     script=script,
     start_label=("greeting_flow", "start_node"),
     fallback_label=("greeting_flow", "fallback_node"),
